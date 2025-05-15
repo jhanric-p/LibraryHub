@@ -1,6 +1,6 @@
- # Git Collaboration Guide for LibraryHub
+ # guide if you want to install it to your pc locally
 
-This guide explains how to use Git for collaborating on our LibraryHub project.
+
 
 ## Initial Setup (First-time only)
 
