@@ -4,7 +4,7 @@
      "service": "app",
      "workspaceFolder": "/workspace",
      "forwardPorts": [3306, 5000],
-     "postCreateCommand": "pip install -r requirements.txt",
+     "postCreateCommand": "pip install -r requirements.txt && python codespace_db_init.py",
      "customizations": {
        "vscode": {
          "extensions": [

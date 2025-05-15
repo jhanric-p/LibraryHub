@@ -1,4 +1,4 @@
-# Using LibraryHub with GitHub Codespaces
+    # Using LibraryHub with GitHub Codespaces
 
 This document explains how to set up and use LibraryHub in a GitHub Codespaces environment.
 
@@ -16,8 +16,7 @@ This document explains how to set up and use LibraryHub in a GitHub Codespaces e
 
 3. **Database initialization**:
    - The database will be automatically set up with the credentials configured in the docker-compose.yml file
-   - When the codespace starts, the `postCreateCommand` in devcontainer.json will install dependencies
-   - The first time you run the application, it will initialize the database schema and create a default admin user
+   - When the codespace starts, the `postCreateCommand` in devcontainer.json will install dependencies and run the database initialization script
 
 ## Running the Application
 
@@ -58,6 +57,17 @@ This document explains how to set up and use LibraryHub in a GitHub Codespaces e
      docker ps
      ```
    - You should see two containers running (app and db)
+   
+   - If you see an error like "Access denied for user 'root'@'127.0.0.1'", it means the application is trying to connect to a local MySQL instance instead of the container. Make sure:
+     1. The DB_CONFIG in app.py is using the correct settings (host: 'db', user: 'library_user', etc.)
+     2. All direct database calls in your code use the container configuration
+     3. If running db_initialization.py directly, make sure its LOCAL_DB_CONFIG also uses container settings
+   
+   - If connection issues persist, you can manually initialize the database by running:
+     ```
+     python codespace_db_init.py
+     ```
+     This script has built-in retry logic and will wait for the MySQL service to be fully ready.
 
 2. **Port Forwarding**:
    - If you can't access the application, check the "Ports" tab to ensure port 5000 is forwarded
