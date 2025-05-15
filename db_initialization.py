@@ -92,10 +92,10 @@ if __name__ == '__main__':
     
 
     LOCAL_DB_CONFIG = {
-        'host': 'localhost',
-        'user': 'root', 
-        'password': '12345678', 
-        'database': 'libraryhub' 
+        'host': 'db',
+        'user': 'library_user', 
+        'password': 'library_password', 
+        'database': 'librarydb' 
     }
 
     def local_get_db_connection():
