@@ -153,4 +153,4 @@ The system uses Font Awesome 6. To add an icon:
 <i class="far fa-user"></i>  <!-- Regular (outline) user icon -->
 ```
 
-Browse available icons at [Font Awesome](https://fontawesome.com/icons) 
+ 
