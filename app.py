@@ -573,7 +573,20 @@ def admin_delete_user(user_id):
 
 # --- Main Execution ---
 if __name__ == '__main__':
-    from db_initialization import init_db # Changed to direct import
-    # DB_CONFIG and get_db_connection are defined at the top level of this file (app.py)
-    init_db(DB_CONFIG, get_db_connection) # Initialize database schema on startup
-    app.run(debug=True)
+    try:
+        # First try to use the codespace-specific initialization
+        from codespace_db_init import init_codespace_db
+        print("Using codespace database initialization...")
+        init_codespace_db()
+    except ImportError:
+        # Fall back to the original initialization if not in codespace
+        try:
+            from db_initialization import init_db
+            print("Using standard database initialization...")
+            # DB_CONFIG and get_db_connection are defined at the top level of this file (app.py)
+            init_db(DB_CONFIG, get_db_connection)
+        except Exception as e:
+            print(f"Warning: Database initialization failed: {e}")
+            print("You may need to initialize the database manually.")
+    
+    app.run(debug=True, host="0.0.0.0")

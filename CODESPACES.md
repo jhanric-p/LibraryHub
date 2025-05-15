@@ -1,4 +1,4 @@
-    # Using LibraryHub with GitHub Codespaces
+# Using LibraryHub with GitHub Codespaces
 
 This document explains how to set up and use LibraryHub in a GitHub Codespaces environment.
 
@@ -24,6 +24,7 @@ This document explains how to set up and use LibraryHub in a GitHub Codespaces e
    ```
    python app.py
    ```
+   - The application will now automatically detect when it's running in a Codespace and use the appropriate database initialization
 
 2. Click on the "Ports" tab at the bottom of the VS Code interface
    - You should see port 5000 (Flask app) and 3306 (MySQL) forwarded
@@ -49,6 +50,26 @@ This document explains how to set up and use LibraryHub in a GitHub Codespaces e
    - Set breakpoints in your code by clicking in the gutter (left margin)
    - Start debugging with F5 or the Run/Debug panel
 
+## Database Connection Issues Fixed
+
+The application has been updated to fix common database connection issues in Codespaces:
+
+1. **Configuration Changes**:
+   - Database connection settings now correctly point to the container (`db`) instead of localhost
+   - The app uses a specialized initialization script (`codespace_db_init.py`) when running in Codespaces
+   - The Flask app now binds to all network interfaces (`0.0.0.0`) to be properly accessible
+
+2. **Error Detection and Recovery**:
+   - The application has a fallback mechanism if one initialization method fails
+   - The specialized script includes retry logic to wait for the MySQL service to be ready
+
+3. **Manual Initialization**:
+   If you still encounter database connection issues, you can:
+   ```
+   python codespace_db_init.py
+   ```
+   Then run the application again.
+
 ## Troubleshooting
 
 1. **Database Connection Issues**:
@@ -57,11 +78,6 @@ This document explains how to set up and use LibraryHub in a GitHub Codespaces e
      docker ps
      ```
    - You should see two containers running (app and db)
-   
-   - If you see an error like "Access denied for user 'root'@'127.0.0.1'", it means the application is trying to connect to a local MySQL instance instead of the container. Make sure:
-     1. The DB_CONFIG in app.py is using the correct settings (host: 'db', user: 'library_user', etc.)
-     2. All direct database calls in your code use the container configuration
-     3. If running db_initialization.py directly, make sure its LOCAL_DB_CONFIG also uses container settings
    
    - If connection issues persist, you can manually initialize the database by running:
      ```
