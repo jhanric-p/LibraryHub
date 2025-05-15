@@ -2,8 +2,8 @@
 -- This file contains all necessary SQL to create the database and required tables
 
 -- Create database if it doesn't exist
-CREATE DATABASE IF NOT EXISTS libraryhub;
-USE libraryhub;
+CREATE DATABASE IF NOT EXISTS librarydb;
+USE librarydb;
 
 -- Create Users table
 CREATE TABLE IF NOT EXISTS users (

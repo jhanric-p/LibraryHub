@@ -16,10 +16,10 @@ def inject_current_year():
 
 # --- Database Configuration ---
 DB_CONFIG = {
-    'host': 'localhost',
-    'user': 'root',
-    'password': '12345678',
-    'database': 'libraryhub'
+    'host': 'db',
+    'user': 'library_user',
+    'password': 'library_password',
+    'database': 'librarydb'
 }
 
 def get_db_connection():
