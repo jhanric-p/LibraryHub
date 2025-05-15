@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{# Page title - displays in browser tab #}
+{% block title %}Dashboard - LibraryHub{% endblock %}
+
+{# Main content section - this replaces the content block in base.html #}
+{% block content %}
+<div class="container-fluid px-4 py-4">
+    {# Page header with user greeting #}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2>Hello, {{ current_user.username }}!</h2>
+            <p class="text-muted" id="currentDateTime">Loading date and time...</p>
+        </div>
+    </div>
+
+    {# DASHBOARD STATISTICS SECTION #}
+    {# These stat cards show important numbers to the user at a glance #}
+    <div class="row">
+        {# CARD 1: Currently Borrowed Books Count #}
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="stat-card shadow-sm">
+                <span class="stat-number borrowed">{{ stats.borrowed_books_count | default(0) }}</span>
+                <span class="stat-label">Borrowed Books</span>
+            </div>
+        </div>
+        
+        {# CARD 2: Overdue Books Count #}
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="stat-card shadow-sm">
+                <span class="stat-number overdue">{{ stats.overdue_books_count | default(0) }}</span>
+                <span class="stat-label">Overdue Books</span>
+            </div>
+        </div>
+        
+        {# CARD 3: Available Books in Library #}
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="stat-card shadow-sm">
+                <span class="stat-number available">{{ stats.total_available_books | default(0) }}</span>
+                <span class="stat-label">Total Available Books</span>
+            </div>
+        </div>
+    </div>
+
+    {# RECENTLY BORROWED BOOKS SECTION #}
+    {# Shows the user's most recent borrowings with status information #}
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <h4 class="mb-0">Recently Borrowed Books</h4>
+        </div>
+        <div class="card-body">
+            {% if recently_borrowed and recently_borrowed|length > 0 %}
+                <div class="list-group">
+                    {# Loop through each borrowed book and display details #}
+                    {% for borrowing in recently_borrowed %}
+                    <a href="{{ url_for('book_details', book_id=borrowing.book_id) }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <div>
+                            {# Book title #}
+                            <h5 class="mb-1">{{ borrowing.title }}</h5>
+                            
+                            {# Borrow date information #}
+                            <small class="text-muted">Borrowed on: {{ borrowing.borrow_date.strftime('%Y-%m-%d') if borrowing.borrow_date else 'N/A' }}</small>
+                            
+                            {# Conditional display of due date or return status #}
+                            {% if not borrowing.return_date and borrowing.due_date %}
+                                {# Color text red if overdue, otherwise yellow for approaching due date #}
+                                <small class="ms-2">Due: <span class="{{ 'text-danger fw-bold' if borrowing.is_overdue else 'text-warning' }}">{{ borrowing.due_date.strftime('%Y-%m-%d') }}</span></small>
+                            {% elif borrowing.return_date %}
+                                <small class="ms-2 text-success">Returned</small>
+                            {% endif %}
+                        </div>
+                        
+                        {# Status badge - changes color based on book status #}
+                        <span class="badge {{ 'bg-danger' if not borrowing.return_date and borrowing.is_overdue else ('bg-warning text-dark' if not borrowing.return_date else 'bg-success') }} rounded-pill">
+                            {% if not borrowing.return_date and borrowing.is_overdue %}
+                                Overdue
+                            {% elif not borrowing.return_date %}
+                                Borrowed
+                            {% else %}
+                                Returned
+                            {% endif %}
+                        </span>
+                    </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                {# Display when user has no borrowed books #}
+                <p class="text-center text-muted py-3">No borrowed books yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            {# Button to view all borrowing history #}
+            <a href="{{ url_for('borrowing_history') }}" class="btn btn-primary w-100 py-2"><i class="fas fa-list-ul me-2"></i>See All Borrowed Books</a>
+        </div>
+        <div class="col-md-6 mb-3">
+            {# Empty space - can be used for additional content or buttons #}
+        </div>
+    </div>
+</div>
+{% endblock %}

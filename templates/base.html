@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <!-- Meta tags for proper rendering and viewport control -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <!-- Title block - can be overridden by child templates -->
+  <title>{% block title %}LHub{% endblock %}</title>
+  
+  <!-- Favicon configuration - replace these files in static/favicon/ to customize -->
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon/favicon.ico') }}">
+  <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='favicon/apple-touch-icon.png') }}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon/favicon-32x32.png') }}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon/favicon-16x16.png') }}">
+  
+  <!-- External CSS libraries -->
+  <!-- Bootstrap 5 - core UI framework -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Poppins font family - primary font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Font Awesome - icons library -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  
+  <!-- Custom CSS - main styling file (modify this to customize the overall look) -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  
+  <!-- Additional head content - allows child templates to add CSS or JS -->
+  {% block head_extra %}{% endblock %}
+</head>
+
+<!-- Body class changes based on page type (auth pages vs regular pages) -->
+<body class="{% if request.endpoint in ['login', 'register'] %}auth-page{% endif %}">
+  <!-- MAIN LAYOUT STRUCTURE -->
+  <!-- For authenticated users (except login/register pages) -->
+  {% if current_user.is_authenticated and request.endpoint not in ['login', 'register'] %}
+  <div class="wrapper">
+    <!-- Sidebar Navigation -->
+    <!-- All sidebar customization can be done here -->
+    <nav id="sidebar">
+      <!-- App Logo/Name in Sidebar Header -->
+      <div class="sidebar-header">
+        <h3><i class="fas fa-book-open me-2"></i>LHub</h3>
+      </div>
+
+      <!-- Navigation Menu -->
+      <ul class="list-unstyled components">
+        <!-- User Welcome Message -->
+        <p class="text-center small">Welcome, {{ current_user.username }}!</p>
+        
+        <!-- REGULAR USER MENU ITEMS -->
+        {% if current_user.role != 'admin' %}
+        <!-- Dashboard menu item - 'active' class highlights current page -->
+        <li class="{{ 'active' if request.endpoint == 'user_dashboard' or request.endpoint == 'index' else '' }}">
+          <a href="{{ url_for('user_dashboard') }}">
+            <i class="fas fa-tachometer-alt"></i>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <!-- Available Books menu item -->
+        <li class="{{ 'active' if request.endpoint == 'available_books' else '' }}">
+          <a href="{{ url_for('available_books') }}">
+            <i class="fas fa-book"></i>
+            <span>Available Books</span>
+          </a>
+        </li>
+        <!-- Borrowing History menu item -->
+        <li class="{{ 'active' if request.endpoint == 'borrowing_history' else '' }}">
+          <a href="{{ url_for('borrowing_history') }}">
+            <i class="fas fa-history"></i>
+            <span>Borrowed Books</span>
+          </a>
+        </li>
+        {% endif %}
+
+        <!-- ADMIN MENU ITEMS -->
+        {% if current_user.role == 'admin' %}
+        <hr class="my-3" style="border-color: rgba(255,255,255,0.1);">
+        <p class="text-center small text-muted">Admin Menu</p>
+        <!-- Admin Dashboard menu item -->
+        <li class="{{ 'active' if request.endpoint == 'admin_dashboard' else '' }}">
+          <a href="{{ url_for('admin_dashboard') }}">
+            <i class="fas fa-cogs"></i>
+            <span>Admin Dashboard</span>
+          </a>
+        </li>
+        <!-- Manage Books menu item -->
+        <li class="{{ 'active' if request.endpoint == 'admin_manage_books' else '' }}">
+          <a href="{{ url_for('admin_manage_books') }}">
+            <i class="fas fa-book-medical"></i>
+            <span>Manage Books</span>
+          </a>
+        </li>
+        <!-- Manage Users menu item -->
+        <li class="{{ 'active' if request.endpoint == 'admin_manage_users' else '' }}">
+          <a href="{{ url_for('admin_manage_users') }}">
+            <i class="fas fa-users-cog"></i>
+            <span>Manage Users</span>
+          </a>
+        </li>
+        {% endif %}
+      </ul>
+
+      <!-- Bottom Sidebar Action Buttons -->
+      <div class="sidebar-ctas">
+        <!-- Meet The Devs button - leads to developer profiles -->
+        <a href="{{ url_for('meet_the_devs') }}" class="btn btn-outline-light mb-2 w-100">
+          <i class="fas fa-users me-2"></i>Meet the Devs
+        </a>
+        <!-- Logout button -->
+        <a href="{{ url_for('logout') }}" class="btn btn-outline-light w-100">
+          <i class="fas fa-sign-out-alt me-2"></i>Logout
+        </a>
+      </div>
+    </nav>
+
+    <!-- Main Content Area - All page content appears here -->
+    <div id="content" class="fade-in">
+      <!-- Flash Messages (alerts, notifications) -->
+      {% include '_messages.html' %}
+      
+      <!-- Main Content Block - child templates insert their content here -->
+      {% block content %}{% endblock %}
+      
+      <!-- Footer - appears at bottom of all pages -->
+      <footer class="main-footer">
+        <div class="text-center">
+          © {% block year %}{{ current_year }}{% endblock %} Group 3 @PUP Paranaque
+        </div>
+      </footer>
+    </div>
+  </div>
+  
+  <!-- ALTERNATIVE LAYOUT FOR LOGIN/REGISTER PAGES -->
+  {% else %}
+  <div class="auth-container">
+    <!-- Auth Page Logo/Title -->
+    <div class="text-center mb-4">
+      <h3 class="text-white"><i class="fas fa-book-open me-2"></i>LHub</h3>
+    </div>
+    
+    <!-- Flash Messages -->
+    {% include '_messages.html' %}
+    
+    <!-- Auth Content Block - login/register forms go here -->
+    {% block auth_content %}{% endblock %}
+    
+    <!-- Auth Footer -->
+    <footer class="mt-auto py-3">
+      <div class="text-center text-white-50">
+        © {% block auth_year %}{{ current_year }}{% endblock %} LHub Management System
+      </div>
+    </footer>
+  </div>
+  {% endif %}
+
+  <!-- JavaScript Dependencies -->
+  <!-- Bootstrap JS Bundle with Popper.js -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- Additional scripts block - allows child templates to add JS -->
+  {% block scripts %}{% endblock %}
+</body>
+</html>

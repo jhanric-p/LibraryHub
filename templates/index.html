@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome - Library Management{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Available Books</h1>
+        {% if current_user.role == 'admin' %}
+            <a href="{{ url_for('admin_add_book') }}" class="btn btn-success">Add New Book</a>
+        {% endif %}
+    </div>
+
+    {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+
+    {% if books %}
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for book in books %}
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">{{ book.title }}</h5>
+                    <h6 class="card-subtitle mb-2 text-muted">By: {{ book.author }}</h6>
+                    <p class="card-text">
+                        <strong>ISBN:</strong> {{ book.isbn }}<br>
+                        <strong>Available Copies:</strong> {{ book.available_copies }}
+                    </p>
+                    <div class="mt-auto">
+                        <a href="{{ url_for('book_details', book_id=book.id) }}" class="btn btn-primary btn-sm">View Details</a>
+                        {% if book.available_copies > 0 %}
+                        <form action="{{ url_for('borrow_book', book_id=book.id) }}" method="POST" class="d-inline ms-1">
+                            <button type="submit" class="btn btn-success btn-sm">Borrow</button>
+                        </form>
+                        {% else %}
+                        <button type="button" class="btn btn-secondary btn-sm ms-1" disabled>Unavailable</button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info" role="alert">
+        No books currently available or database connection issue.
+        {% if current_user.role == 'admin' %}
+            Please <a href="{{ url_for('admin_add_book') }}">add some books</a>.
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

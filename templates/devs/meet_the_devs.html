@@ -1,0 +1,391 @@
+{% extends 'base.html' %}
+{% block title %}Meet the Team - LHub{% endblock %}
+{% block content %}
+<div class="container py-5 meet-the-team-container">
+  <h1 class="mb-4 text-center">Meet the Team</h1>
+  
+  <!-- Team Description Section -->
+  <div class="team-description text-center mb-5">
+    <p class="lead">We are a passionate team of developers and designers dedicated to creating innovative solutions. Our diverse skills and collaborative approach drive us to deliver exceptional results.</p>
+  </div>
+
+  <!-- Team Stats -->
+  <div class="row text-center mb-5">
+    <div class="col-md-3">
+      <div class="stat-box">
+        <i class="fas fa-code"></i>
+        <h3>4</h3>
+        <p>Team Members</p>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-box">
+        <i class="fas fa-project-diagram"></i>
+        <h3>NONE??</h3>
+        <p>Projects Completed</p>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-box">
+        <i class="fas fa-users"></i>
+        <h3>-0</h3>
+        <p>Happy Clients</p>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-box">
+        <i class="fas fa-star"></i>
+        <h3>-69.0</h3>
+        <p>Average Rating</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="row justify-content-center">
+    {% set devs = [
+      {
+        'name': 'Jhanric',
+        'last': 'pablo',
+        'role': 'Full stack Dev',
+        'url': url_for('dev_pablo'),
+        'skills': ['Python', 'Flask', 'MySQL', 'HTML/CSS'],
+        'achievement': '🌟',
+        'social': {
+          'github': 'https://github.com/jhanric-p',
+          'instagram': 'https://www.instagram.com/jhanricp/'
+        },
+        'bio': 'Passionate about creating efficient and scalable web applications.'
+      },
+      {
+        'name': 'Angel Kia',
+        'last': 'cruz',
+        'role': 'UI/UX Designer',
+        'url': url_for('dev_cruz'),
+        'skills': ['UI Design', 'UX Research', 'Figma', 'Prototyping'],
+        'achievement': '🎨',
+        'social': {
+          'github': 'https://github.com/kia1191',
+          'instagram': 'https://instagram.com/'
+        },
+        'bio': 'Focused on creating intuitive and beautiful user experiences.'
+      },
+      {
+        'name': 'James Mathieu',
+        'last': 'paulite',
+        'role': 'UI/UX Designer',
+        'url': url_for('dev_paulite'),
+        'skills': ['UI Design', 'Wireframing', 'Adobe XD', 'User Testing'],
+        'achievement': '✨',
+        'social': {
+          'github': 'https://github.com/levmor-ior',
+          'instagram': 'https://instagram.com/'
+        },
+        'bio': 'Specializing in user-centered design and interactive prototypes.'
+      },
+      {
+        'name': 'Suzanne Hyacinth',
+        'last': 'habitan',
+        'role': 'UI/UX Designer',
+        'url': url_for('dev_habitan'),
+        'skills': ['UI Design', 'Visual Design', 'Sketch', 'User Research'],
+        'achievement': '🎯',
+        'social': {
+          'github': 'https://github.com/',
+          'instagram': 'https://instagram.com/'
+        },
+        'bio': 'Dedicated to creating visually appealing and functional designs.'
+      }
+    ] %}
+    {% for dev in devs %}
+    <div class="col-md-4 col-lg-3 mb-4 dev-card">
+      <div class="card h-100 text-center p-3">
+        <div class="achievement-badge">{{ dev.achievement }}</div>
+        <div class="social-links">
+          <a href="{{ dev.social.github }}" target="_blank" title="GitHub"><i class="fab fa-github"></i></a>
+          <a href="{{ dev.social.instagram }}" target="_blank" title="Instagram"><i class="fab fa-instagram"></i></a>
+        </div>
+        <div class="profile-image-container">
+          <div class="profile-image-border">
+            <img src="{{ url_for('static', filename='images/devs/' ~ dev.last ~ '.jpg') }}" class="rounded-circle" alt="{{ dev.name }}" style="width: 120px; height: 120px; object-fit: cover;">
+          </div>
+        </div>
+        <h5 class="mb-1">{{ dev.name }}</h5>
+        <div class="text-muted mb-2 role-text" style="font-size: 1rem;">{{ dev.role }}</div>
+        <p class="dev-bio">{{ dev.bio }}</p>
+        <div class="skill-tags">
+          {% for skill in dev.skills %}
+          <span class="skill-tag">{{ skill }}</span>
+          {% endfor %}
+        </div>
+        {% if dev.name == 'Jhanric' %}
+        <a href="{{ dev.url }}" class="btn btn-primary btn-sm mt-2" target="_blank">About Me</a>
+        {% else %}
+        <a href="{{ dev.url }}" class="btn btn-primary btn-sm mt-2">About Me</a>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<style>
+.team-description {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  background: linear-gradient(145deg, #ffffff, #f0f7ff);
+  border-radius: 15px;
+  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.1);
+}
+
+.stat-box {
+  padding: 25px;
+  border-radius: 15px;
+  background: linear-gradient(145deg, #ffffff, #f8f9fa);
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.1);
+  border: 1px solid rgba(0, 123, 255, 0.1);
+}
+
+.stat-box:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 123, 255, 0.15);
+  background: linear-gradient(145deg, #ffffff, #e6f0ff);
+}
+
+.stat-box i {
+  font-size: 2.5rem;
+  background: linear-gradient(45deg, #007bff, #00bfff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 15px;
+}
+
+.stat-box h3 {
+  font-size: 2.2rem;
+  margin: 10px 0;
+  color: #0056b3;
+  font-weight: 600;
+}
+
+.stat-box p {
+  color: #4a6f8a;
+  font-weight: 500;
+}
+
+.dev-card .card {
+  background: linear-gradient(145deg, #ffffff, #f8f9fa);
+  border: 1px solid rgba(0, 123, 255, 0.1);
+  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.dev-card:hover .card {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 123, 255, 0.15);
+  background: linear-gradient(270deg, #e6f0ff, #ffffff, #b3d8ff, #e6f0ff);
+  background-size: 400% 400%;
+  animation: moving-gradient 3s ease-in-out infinite;
+}
+
+.dev-bio {
+  font-size: 0.9rem;
+  color: #4a6f8a;
+  margin: 10px 0;
+  min-height: 40px;
+  line-height: 1.5;
+}
+
+.skill-tag {
+  display: inline-block;
+  padding: 6px 12px;
+  margin: 3px;
+  background: linear-gradient(145deg, #e6f0ff, #f0f7ff);
+  border: 1px solid rgba(0, 123, 255, 0.1);
+  border-radius: 20px;
+  font-size: 0.8rem;
+  color: #0056b3;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.skill-tag:hover {
+  background: linear-gradient(145deg, #d4e5ff, #e6f0ff);
+  transform: translateY(-2px);
+}
+
+.social-links {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 10px;
+  position: relative;
+  z-index: 2;
+}
+
+.social-links a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0,123,255,0.08);
+  margin: 0;
+  color: #4a6f8a;
+  transition: all 0.3s ease;
+  font-size: 1.3rem;
+  border: 1.5px solid #e6f0ff;
+}
+
+.social-links a:hover {
+  color: #007bff;
+  background: #e6f0ff;
+  transform: translateY(-2px) scale(1.08);
+  box-shadow: 0 4px 16px rgba(0,123,255,0.15);
+}
+
+.profile-image-container {
+  position: relative;
+  margin: 20px auto 10px auto;
+  z-index: 1;
+}
+
+.profile-image-container img {
+  border: 3px solid #fff;
+  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.dev-card:hover .profile-image-container img {
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(0, 123, 255, 0.3);
+}
+
+.role-text {
+  color: #4a6f8a;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+h1.mb-4 {
+  color: #0056b3;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0, 123, 255, 0.1);
+}
+
+.lead {
+  color: #4a6f8a;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+@keyframes moving-gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.row.justify-content-center {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+}
+
+.dev-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  align-items: stretch;
+}
+
+.dev-card .card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 480px;
+  flex: 1 1 auto;
+  justify-content: flex-start;
+}
+
+.dev-bio {
+  flex: 1 1 auto;
+}
+
+.btn.btn-primary.btn-sm.mt-2 {
+  margin-top: auto;
+  align-self: stretch;
+}
+
+@media (min-width: 992px) {
+  .dev-card .card {
+    height: 520px;
+    min-height: 520px;
+    max-height: 520px;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+}
+
+/* Add animated border styles */
+.profile-image-border {
+  padding: 4px;
+  border-radius: 50%;
+  background: linear-gradient(270deg, #007bff, #00bfff, #e6f0ff, #007bff);
+  background-size: 400% 400%;
+  animation: moving-gradient 3s linear infinite;
+  box-shadow: 0 0 0 4px rgba(0,123,255,0.10), 0 4px 15px rgba(0,123,255,0.10);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-image-border img {
+  background: #fff;
+  border-radius: 50%;
+  display: block;
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Add loading state
+  document.querySelectorAll('.dev-card').forEach(card => {
+    card.classList.add('loading');
+  });
+
+  // Remove loading state after images are loaded
+  window.addEventListener('load', function() {
+    document.querySelectorAll('.dev-card').forEach(card => {
+      card.classList.remove('loading');
+    });
+  });
+
+  // Intersection Observer for scroll animations
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, {
+    threshold: 0.1
+  });
+
+  document.querySelectorAll('.dev-card').forEach((card) => {
+    observer.observe(card);
+  });
+});
+</script>
+{% endblock %}
