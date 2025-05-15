@@ -1,6 +1,6 @@
 # LibraryHub Templates & Styling Guide
 
-This guide explains the structure of the HTML templates and CSS in the LibraryHub system to help you customize and extend the user interface.
+basta guide 'to haha
 
 ## Template Structure
 
