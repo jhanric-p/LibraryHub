@@ -2,51 +2,347 @@
 
 {% block title %}{{ book.title }} - Book Details{% endblock %}
 
+{% block head_extra %}
+<style>
+    .book-detail-container {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        padding: 1rem 0;
+    }
+    
+    .book-header {
+        position: relative;
+        background: linear-gradient(to right, var(--primary-dark), var(--primary));
+        color: white;
+        border-radius: var(--radius-lg);
+        padding: 2.5rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-lg);
+    }
+    
+    .book-header h1 {
+        font-size: 2.25rem;
+        font-weight: 700;
+        margin-bottom: 0.75rem;
+        max-width: 80%;
+    }
+    
+    .book-header .author {
+        font-size: 1.25rem;
+        opacity: 0.9;
+        margin-bottom: 1.5rem;
+    }
+    
+    .book-header .badge-container {
+        display: flex;
+        gap: 0.75rem;
+    }
+    
+    .book-header .badge {
+        font-size: 0.85rem;
+        font-weight: 600;
+        padding: 0.5rem 1rem;
+        border-radius: 2rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .book-header .badge.available {
+        background-color: rgba(16, 185, 129, 0.2);
+        color: #ecfdf5;
+    }
+    
+    .book-header .badge.unavailable {
+        background-color: rgba(239, 68, 68, 0.2);
+        color: #fef2f2;
+    }
+    
+    .book-cover {
+        position: relative;
+        width: 220px;
+        height: 320px;
+        background-color: rgba(255, 255, 255, 0.1);
+        border-radius: var(--radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: var(--shadow-lg);
+        margin-bottom: 1.5rem;
+    }
+    
+    .book-cover i {
+        font-size: 5rem;
+        color: rgba(255, 255, 255, 0.5);
+    }
+    
+    .book-main-content {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 2rem;
+    }
+    
+    .book-info {
+        flex: 1;
+        min-width: 300px;
+    }
+    
+    .book-meta {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .meta-item {
+        padding: 1.25rem;
+        background-color: var(--white);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-sm);
+    }
+    
+    .meta-item .label {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--gray-500);
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .meta-item .value {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: var(--gray-800);
+    }
+    
+    .meta-item i {
+        margin-right: 0.5rem;
+        color: var(--primary);
+    }
+    
+    .description-container {
+        background-color: var(--white);
+        border-radius: var(--radius-lg);
+        padding: 2rem;
+        box-shadow: var(--shadow-md);
+    }
+    
+    .description-container h3 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1.25rem;
+        color: var(--gray-800);
+        display: flex;
+        align-items: center;
+    }
+    
+    .description-container h3 i {
+        margin-right: 0.75rem;
+        color: var(--primary);
+    }
+    
+    .description-text {
+        line-height: 1.7;
+        color: var(--gray-700);
+    }
+    
+    .actions-container {
+        background-color: var(--white);
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        box-shadow: var(--shadow-md);
+    }
+    
+    .actions-container h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 1.25rem;
+        color: var(--gray-800);
+    }
+    
+    .actions-container .btn-lg {
+        padding: 0.75rem 1.5rem;
+        font-size: 1.1rem;
+    }
+    
+    .admin-actions {
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--gray-200);
+    }
+    
+    .book-added-date {
+        margin-top: 1.5rem;
+        font-size: 0.9rem;
+        color: var(--gray-500);
+        text-align: center;
+    }
+    
+    @media (max-width: 768px) {
+        .book-header {
+            padding: 1.5rem;
+        }
+        
+        .book-header h1 {
+            font-size: 1.75rem;
+            max-width: 100%;
+        }
+        
+        .book-cover {
+            width: 180px;
+            height: 260px;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
+<div class="container-fluid px-4 py-4">
     {% if book %}
-    <div class="card shadow-sm">
-        <div class="card-header bg-light">
-            <h2 class="mb-0">{{ book.title }}</h2>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-8">
-                    <p><strong>Author:</strong> {{ book.author }}</p>
-                    <p><strong>ISBN:</strong> {{ book.isbn }}</p>
-                    <p><strong>Total Copies:</strong> {{ book.total_copies }}</p>
-                    <p><strong>Available Copies:</strong> {{ book.available_copies }}</p>
-                    <p><strong>Description:</strong></p>
-                    <p>{{ book.description.replace('\n', '<br>') | safe if book.description else 'No description available.' }}</p>
+    <div class="book-detail-container">
+        <!-- Book Header -->
+        <div class="book-header">
+            <div class="row align-items-center">
+                <div class="col-md-3 col-lg-2 text-center">
+                    <div class="book-cover mx-auto">
+                        <i class="fas fa-book"></i>
+                    </div>
                 </div>
-                <div class="col-md-4 text-md-end">
-                    {% if book.available_copies > 0 %}
-                    <form action="{{ url_for('borrow_book', book_id=book.id) }}" method="POST" class="mb-2">
-                        <button type="submit" class="btn btn-success btn-lg w-100">Borrow This Book</button>
-                    </form>
-                    {% else %}
-                    <button type="button" class="btn btn-secondary btn-lg w-100" disabled>Currently Unavailable</button>
-                    {% endif %}
-                    {% if current_user.role == 'admin' %}
-                        <a href="{{ url_for('admin_edit_book', book_id=book.id) }}" class="btn btn-warning btn-sm mt-2 w-100">Edit Book</a>
-                        <form action="{{ url_for('admin_delete_book', book_id=book.id) }}" method="POST" class="d-inline w-100 mt-1" onsubmit="return confirm('Are you sure you want to delete this book?');">
-                            <button type="submit" class="btn btn-danger btn-sm w-100">Delete Book</button>
-                        </form>
-                    {% endif %}
+                <div class="col-md-9 col-lg-10">
+                    <h1>{{ book.title }}</h1>
+                    <div class="author">by {{ book.author }}</div>
+                    <div class="badge-container">
+                        <span class="badge {% if book.available_copies > 0 %}available{% else %}unavailable{% endif %}">
+                            {% if book.available_copies > 0 %}Available{% else %}Unavailable{% endif %}
+                        </span>
+                        
+                        {% set category = book.id % 5 %}
+                        <span class="badge" style="background-color: rgba(255, 255, 255, 0.2);">
+                            {% if category == 0 %}
+                                Business
+                            {% elif category == 1 %}
+                                Fiction
+                            {% elif category == 2 %}
+                                Non-Fiction
+                            {% elif category == 3 %}
+                                Science
+                            {% else %}
+                                Technology
+                            {% endif %}
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="card-footer text-muted">
-            Added on: {{ book.added_at.strftime('%Y-%m-%d %H:%M') if book.added_at else 'N/A' }}
+        
+        <div class="book-main-content">
+            <!-- Book Information -->
+            <div class="book-info">
+                <!-- Book Metadata -->
+                <div class="book-meta">
+                    <div class="meta-item">
+                        <div class="label"><i class="fas fa-barcode"></i> ISBN</div>
+                        <div class="value">{{ book.isbn }}</div>
+                    </div>
+                    
+                    <div class="meta-item">
+                        <div class="label"><i class="fas fa-layer-group"></i> Total Copies</div>
+                        <div class="value">{{ book.total_copies }}</div>
+                    </div>
+                    
+                    <div class="meta-item">
+                        <div class="label"><i class="fas fa-book-open"></i> Available Copies</div>
+                        <div class="value {% if book.available_copies > 0 %}text-success{% else %}text-danger{% endif %}">
+                            {{ book.available_copies }} / {{ book.total_copies }}
+                        </div>
+                    </div>
+                    
+                    {% set rating = ((book.id * 17) % 5 + 3.5)|round(1) %}
+                    <div class="meta-item">
+                        <div class="label"><i class="fas fa-star"></i> Rating</div>
+                        <div class="value">
+                            <div class="rating-stars" style="color: var(--warning);">
+                                {% for i in range(5) %}
+                                    {% if i < rating|int %}
+                                        <i class="fas fa-star"></i>
+                                    {% elif i == rating|int and rating != rating|int %}
+                                        <i class="fas fa-star-half-alt"></i>
+                                    {% else %}
+                                        <i class="far fa-star"></i>
+                                    {% endif %}
+                                {% endfor %}
+                                <span class="ms-2">{{ rating }}/5</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Book Description -->
+                <div class="description-container">
+                    <h3><i class="fas fa-info-circle"></i> Description</h3>
+                    <div class="description-text">
+                        {% if book.description %}
+                            {{ book.description.replace('\n', '<br>') | safe }}
+                        {% else %}
+                            <div class="text-muted">No description available for this book. This is where the book's summary, plot details, and other relevant information would be displayed to help readers decide if they want to borrow it.</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Borrowing Actions -->
+            <div class="col-lg-3">
+                <div class="actions-container">
+                    <h3>Actions</h3>
+                    {% if book.available_copies > 0 %}
+                    <form action="{{ url_for('borrow_book', book_id=book.id) }}" method="POST" class="mb-3">
+                        <button type="submit" class="btn btn-success btn-lg w-100">
+                            <i class="fas fa-hand-holding me-2"></i> Borrow This Book
+                        </button>
+                    </form>
+                    {% else %}
+                    <button type="button" class="btn btn-secondary btn-lg w-100 mb-3" disabled>
+                        <i class="fas fa-clock me-2"></i> Currently Unavailable
+                    </button>
+                    {% endif %}
+                    
+                    <a href="{{ url_for('available_books') }}" class="btn btn-outline-primary w-100">
+                        <i class="fas fa-arrow-left me-2"></i> Back to Book List
+                    </a>
+                    
+                    {% if current_user.role == 'admin' %}
+                    <div class="admin-actions">
+                        <div class="d-grid gap-2">
+                            <a href="{{ url_for('admin_edit_book', book_id=book.id) }}" class="btn btn-warning">
+                                <i class="fas fa-edit me-2"></i> Edit Book
+                            </a>
+                            <form action="{{ url_for('admin_delete_book', book_id=book.id) }}" method="POST" 
+                                  onsubmit="return confirm('Are you sure you want to delete this book? This action cannot be undone.');">
+                                <button type="submit" class="btn btn-danger w-100">
+                                    <i class="fas fa-trash-alt me-2"></i> Delete Book
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                {% if book.added_at %}
+                <div class="book-added-date">
+                    Added to library on {{ book.added_at.strftime('%B %d, %Y') }}
+                </div>
+                {% endif %}
+            </div>
         </div>
     </div>
     {% else %}
-    <div class="alert alert-warning" role="alert">
-        Book not found.
+    <div class="empty-state">
+        <i class="fas fa-book-open"></i>
+        <h4>Book not found</h4>
+        <p>The book you're looking for doesn't exist or has been removed from the library.</p>
+        <a href="{{ url_for('available_books') }}" class="btn btn-primary">Browse Available Books</a>
     </div>
     {% endif %}
-    <div class="mt-4">
-        <a href="{{ url_for('available_books') }}" class="btn btn-outline-secondary">&laquo; Back to Book List</a>
-    </div>
 </div>
 {% endblock %}

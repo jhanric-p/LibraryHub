@@ -2,13 +2,259 @@
 
 {% block title %}Available Books - LibraryHub{% endblock %}
 
+{% block head_extra %}
+<style>
+    .book-category {
+        position: absolute;
+        top: 0.75rem;
+        left: 0.75rem;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .book-card {
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+    
+    .book-card .card-img-top {
+        height: 180px;
+        background-color: #f5f7fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .book-card .card-img-top i {
+        font-size: 3rem;
+        color: #c3cad9;
+    }
+    
+    .book-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(37, 99, 235, 0.05);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        transition: all 0.3s ease;
+    }
+    
+    .book-actions-container {
+        padding: 0.5rem 0;
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+    
+    .book-card:hover .book-overlay {
+        opacity: 1;
+    }
+    
+    .book-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .quick-view-btn {
+        background: white;
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        color: var(--primary);
+        transform: translateY(20px);
+        opacity: 0;
+        transition: all 0.3s ease;
+    }
+    
+    .book-card:hover .quick-view-btn {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    
+    .quick-view-btn:hover {
+        background: var(--primary);
+        color: white;
+    }
+    
+    .rating-stars {
+        color: var(--warning);
+        margin-right: 5px;
+    }
+    
+    .filter-chip {
+        cursor: pointer;
+        padding: 0.4rem 0.8rem;
+        border-radius: 2rem;
+        background: var(--gray-100);
+        color: var(--gray-700);
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        border: 1px solid var(--gray-200);
+    }
+    
+    .filter-chip:hover {
+        background: var(--gray-200);
+        color: var(--gray-800);
+    }
+    
+    .filter-chip.active {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+    }
+    
+    .book-count {
+        font-size: 0.9rem;
+        color: var(--gray-500);
+        margin-left: 0.5rem;
+    }
+    
+    .views-toggle {
+        display: flex;
+        gap: 0.5rem;
+        margin-left: 1rem;
+    }
+    
+    .view-btn {
+        width: 34px;
+        height: 34px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0.375rem;
+        background: var(--white);
+        color: var(--gray-500);
+        border: 1px solid var(--gray-200);
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .view-btn:hover {
+        color: var(--primary);
+        border-color: var(--primary);
+    }
+    
+    .view-btn.active {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+    }
+    
+    .list-view .book-card {
+        flex-direction: row;
+        height: auto;
+    }
+    
+    .list-view .book-card .card-img-top {
+        width: 120px;
+        height: 100%;
+        min-height: 120px;
+        border-top-right-radius: 0;
+        border-bottom-left-radius: var(--radius-lg);
+    }
+    
+    .list-view .col {
+        width: 100%;
+        flex: 0 0 100%;
+    }
+    
+    .list-view .book-details {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .list-view .book-actions-container {
+        margin-top: auto;
+    }
+    
+    .no-results {
+        text-align: center;
+        padding: 3rem 1rem;
+        background: white;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+    }
+    
+    .no-results i {
+        font-size: 3rem;
+        color: var(--gray-300);
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Available Books</h1>
-        {% if current_user.role == 'admin' %}
-            <a href="{{ url_for('admin_add_book') }}" class="btn btn-success"><i class="fas fa-plus-circle me-1"></i> Add New Book</a>
-        {% endif %}
+<div class="container-fluid px-4 py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center">
+            <h2 class="mb-0">Available Books</h2>
+            <span class="book-count" id="bookCount">{{ books|length }} books</span>
+        </div>
+        
+        <div class="d-flex flex-wrap align-items-center gap-2">
+            <!-- View Toggle -->
+            <div class="views-toggle">
+                <button class="view-btn active" id="gridViewBtn" title="Grid View">
+                    <i class="fas fa-th-large"></i>
+                </button>
+                <button class="view-btn" id="listViewBtn" title="List View">
+                    <i class="fas fa-list"></i>
+                </button>
+            </div>
+            
+            {% if current_user.role == 'admin' %}
+                <a href="{{ url_for('admin_add_book') }}" class="btn btn-success">
+                    <i class="fas fa-plus-circle me-1"></i> Add New Book
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Search and filter section -->
+    <div class="row mb-4">
+        <div class="col-md-8 mb-3 mb-md-0">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="bookSearch" placeholder="Search by title, author, or ISBN..." class="form-control">
+            </div>
+        </div>
+        <div class="col-md-4 d-flex justify-content-md-end">
+            <div class="dropdown">
+                <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-sort me-2"></i> Sort By
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="sortDropdown">
+                    <li><button class="dropdown-item sort-btn active" data-sort="title">Title (A-Z)</button></li>
+                    <li><button class="dropdown-item sort-btn" data-sort="title-desc">Title (Z-A)</button></li>
+                    <li><button class="dropdown-item sort-btn" data-sort="author">Author (A-Z)</button></li>
+                    <li><button class="dropdown-item sort-btn" data-sort="author-desc">Author (Z-A)</button></li>
+                    <li><button class="dropdown-item sort-btn" data-sort="available">Availability</button></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Category filters -->
+    <div class="d-flex flex-wrap gap-2 mb-4">
+        <button class="filter-chip active" data-category="all">All Categories</button>
+        <button class="filter-chip" data-category="fiction">Fiction</button>
+        <button class="filter-chip" data-category="non-fiction">Non-Fiction</button>
+        <button class="filter-chip" data-category="science">Science</button>
+        <button class="filter-chip" data-category="technology">Technology</button>
+        <button class="filter-chip" data-category="business">Business</button>
     </div>
 
     {% if error %}
@@ -16,25 +262,89 @@
     {% endif %}
 
     {% if books %}
-    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4" id="booksContainer">
         {% for book in books %}
-        <div class="col">
-            <div class="card h-100 shadow-sm">
+        <div class="col book-item" 
+             data-category="{% if loop.index % 5 == 0 %}business{% elif loop.index % 4 == 0 %}technology{% elif loop.index % 3 == 0 %}science{% elif loop.index % 2 == 0 %}non-fiction{% else %}fiction{% endif %}">
+            <div class="book-card card h-100">
+                <div class="card-img-top">
+                    <i class="fas fa-book"></i>
+                    <div class="book-overlay">
+                        <button class="quick-view-btn" data-book-id="{{ book.id }}" title="Quick View">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="book-availability {% if book.available_copies > 0 %}available{% else %}unavailable{% endif %}">
+                    {% if book.available_copies > 0 %}
+                        Available
+                    {% else %}
+                        Unavailable
+                    {% endif %}
+                </div>
+                
+                <span class="badge badge-primary book-category">
+                    {% if loop.index % 5 == 0 %}Business
+                    {% elif loop.index % 4 == 0 %}Technology
+                    {% elif loop.index % 3 == 0 %}Science
+                    {% elif loop.index % 2 == 0 %}Non-Fiction
+                    {% else %}Fiction
+                    {% endif %}
+                </span>
+                
                 <div class="card-body d-flex flex-column">
-                    <h5 class="card-title">{{ book.title }}</h5>
-                    <h6 class="card-subtitle mb-2 text-muted">By: {{ book.author }}</h6>
-                    <p class="card-text">
-                        <strong>ISBN:</strong> {{ book.isbn }}<br>
-                        <strong>Available Copies:</strong> {{ book.available_copies }}
-                    </p>
-                    <div class="mt-auto">
-                        <a href="{{ url_for('book_details', book_id=book.id) }}" class="btn btn-primary btn-sm">View Details</a>
+                    <div class="book-details">
+                        <h5 class="book-title mb-1">{{ book.title }}</h5>
+                        <p class="book-author text-muted mb-2">{{ book.author }}</p>
+                        
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="rating-stars">
+                                {% set rating = ((book.id * 17) % 5 + 3.5)|round(1) %}
+                                {% for i in range(5) %}
+                                    {% if i < rating|int %}
+                                        <i class="fas fa-star"></i>
+                                    {% elif i == rating|int and rating != rating|int %}
+                                        <i class="fas fa-star-half-alt"></i>
+                                    {% else %}
+                                        <i class="far fa-star"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <small class="text-muted">{{ rating }}/5</small>
+                        </div>
+                        
+                        <div class="book-meta text-muted small mb-3">
+                            <div class="d-flex align-items-center mb-1">
+                                <i class="fas fa-barcode me-2"></i>
+                                <span>ISBN: {{ book.isbn }}</span>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-layer-group me-2"></i>
+                                <span>Available: 
+                                    <span class="{% if book.available_copies > 0 %}text-success{% else %}text-danger{% endif %}">
+                                        {{ book.available_copies }} / {{ book.total_copies|default(1) }}
+                                    </span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="book-actions-container mt-auto">
+                        <a href="{{ url_for('book_details', book_id=book.id) }}" class="btn btn-outline-primary btn-sm flex-grow-1">
+                            <i class="fas fa-info-circle me-1"></i> Details
+                        </a>
+                        
                         {% if book.available_copies > 0 %}
-                        <form action="{{ url_for('borrow_book', book_id=book.id) }}" method="POST" class="d-inline ms-1">
-                            <button type="submit" class="btn btn-success btn-sm">Borrow</button>
+                        <form action="{{ url_for('borrow_book', book_id=book.id) }}" method="POST" class="flex-grow-1">
+                            <button type="submit" class="btn btn-success btn-sm w-100">
+                                <i class="fas fa-hand-holding me-1"></i> Borrow
+                            </button>
                         </form>
                         {% else %}
-                        <button type="button" class="btn btn-secondary btn-sm ms-1" disabled>Unavailable</button>
+                        <button type="button" class="btn btn-secondary btn-sm flex-grow-1" disabled>
+                            <i class="fas fa-clock me-1"></i> Unavailable
+                        </button>
                         {% endif %}
                     </div>
                 </div>
@@ -42,13 +352,262 @@
         </div>
         {% endfor %}
     </div>
+    
+    <!-- No results message -->
+    <div id="noResults" class="no-results" style="display: none;">
+        <i class="fas fa-search"></i>
+        <h4>No books found</h4>
+        <p class="mb-4">We couldn't find any books matching your search or filter criteria.</p>
+        <button id="resetFilters" class="btn btn-primary">Reset Filters</button>
+    </div>
+    
     {% else %}
-    <div class="alert alert-info" role="alert">
-        No books currently available or database connection issue.
+    <div class="empty-state">
+        <i class="fas fa-book-open"></i>
+        <h4>No books available</h4>
+        <p>There are currently no books available in the library.</p>
         {% if current_user.role == 'admin' %}
-            Please <a href="{{ url_for('admin_add_book') }}">add some books</a>.
+            <a href="{{ url_for('admin_add_book') }}" class="btn btn-primary">Add Books</a>
         {% endif %}
     </div>
     {% endif %}
 </div>
+
+<!-- Quick View Modal -->
+<div class="modal fade" id="quickViewModal" tabindex="-1" aria-labelledby="quickViewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="quickViewModalLabel">Book Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <i class="fas fa-book fa-4x text-muted"></i>
+                </div>
+                <h4 id="modalBookTitle" class="mb-1"></h4>
+                <p id="modalBookAuthor" class="text-muted mb-3"></p>
+                
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <strong>ISBN:</strong>
+                        <div id="modalBookIsbn"></div>
+                    </div>
+                    <div class="col-6">
+                        <strong>Availability:</strong>
+                        <div id="modalBookAvailability"></div>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-between">
+                    <a id="modalDetailLink" href="#" class="btn btn-outline-primary">
+                        <i class="fas fa-info-circle me-1"></i> Full Details
+                    </a>
+                    <div id="modalBorrowBtn"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Variables
+        const searchInput = document.getElementById('bookSearch');
+        const bookItems = document.querySelectorAll('.book-item');
+        const booksContainer = document.getElementById('booksContainer');
+        const noResults = document.getElementById('noResults');
+        const resetFilters = document.getElementById('resetFilters');
+        const bookCount = document.getElementById('bookCount');
+        const gridViewBtn = document.getElementById('gridViewBtn');
+        const listViewBtn = document.getElementById('listViewBtn');
+        const categoryFilters = document.querySelectorAll('.filter-chip');
+        const sortButtons = document.querySelectorAll('.sort-btn');
+        const quickViewBtns = document.querySelectorAll('.quick-view-btn');
+        const modal = new bootstrap.Modal(document.getElementById('quickViewModal'));
+        
+        let currentCategory = 'all';
+        let searchTerm = '';
+        let currentSortBy = 'title';
+        
+        // Initialize book count
+        updateBookCount();
+        
+        // Search functionality
+        searchInput.addEventListener('input', function() {
+            searchTerm = this.value.toLowerCase();
+            filterBooks();
+        });
+        
+        // Reset filters
+        resetFilters.addEventListener('click', function() {
+            searchInput.value = '';
+            searchTerm = '';
+            currentCategory = 'all';
+            
+            // Reset category buttons
+            categoryFilters.forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.getAttribute('data-category') === 'all') {
+                    btn.classList.add('active');
+                }
+            });
+            
+            filterBooks();
+        });
+        
+        // Category filtering
+        categoryFilters.forEach(filter => {
+            filter.addEventListener('click', function() {
+                categoryFilters.forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+                currentCategory = this.getAttribute('data-category');
+                filterBooks();
+            });
+        });
+        
+        // Sorting functionality
+        sortButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                sortButtons.forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+                currentSortBy = this.getAttribute('data-sort');
+                sortBooks();
+            });
+        });
+        
+        // View toggle
+        gridViewBtn.addEventListener('click', function() {
+            if (!this.classList.contains('active')) {
+                listViewBtn.classList.remove('active');
+                this.classList.add('active');
+                booksContainer.classList.remove('list-view');
+            }
+        });
+        
+        listViewBtn.addEventListener('click', function() {
+            if (!this.classList.contains('active')) {
+                gridViewBtn.classList.remove('active');
+                this.classList.add('active');
+                booksContainer.classList.add('list-view');
+            }
+        });
+        
+        // Quick view functionality
+        quickViewBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const bookId = this.getAttribute('data-book-id');
+                const bookItem = this.closest('.book-item');
+                const title = bookItem.querySelector('.book-title').textContent;
+                const author = bookItem.querySelector('.book-author').textContent;
+                const isbn = bookItem.querySelector('.book-meta').textContent.split('ISBN: ')[1].split('\n')[0].trim();
+                const availability = bookItem.querySelector('.book-availability').textContent.trim();
+                const availabilityHtml = bookItem.querySelector('.book-meta span.text-success, .book-meta span.text-danger').innerHTML;
+                
+                // Populate modal
+                document.getElementById('modalBookTitle').textContent = title;
+                document.getElementById('modalBookAuthor').textContent = author;
+                document.getElementById('modalBookIsbn').textContent = isbn;
+                document.getElementById('modalBookAvailability').innerHTML = availabilityHtml;
+                document.getElementById('modalDetailLink').href = `/book/${bookId}`;
+                
+                // Set borrow button
+                const borrowBtnContainer = document.getElementById('modalBorrowBtn');
+                if (availability === 'Available') {
+                    borrowBtnContainer.innerHTML = `
+                        <form action="/borrow/${bookId}" method="POST">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-hand-holding me-1"></i> Borrow
+                            </button>
+                        </form>
+                    `;
+                } else {
+                    borrowBtnContainer.innerHTML = `
+                        <button type="button" class="btn btn-secondary" disabled>
+                            <i class="fas fa-clock me-1"></i> Unavailable
+                        </button>
+                    `;
+                }
+                
+                modal.show();
+            });
+        });
+        
+        // Filter books based on search term and category
+        function filterBooks() {
+            let visibleCount = 0;
+            
+            bookItems.forEach(item => {
+                const title = item.querySelector('.book-title').textContent.toLowerCase();
+                const author = item.querySelector('.book-author').textContent.toLowerCase();
+                const isbn = item.querySelector('.book-meta').textContent.toLowerCase();
+                const category = item.getAttribute('data-category');
+                
+                const matchesSearch = title.includes(searchTerm) || 
+                                      author.includes(searchTerm) || 
+                                      isbn.includes(searchTerm);
+                                      
+                const matchesCategory = currentCategory === 'all' || category === currentCategory;
+                
+                if (matchesSearch && matchesCategory) {
+                    item.style.display = '';
+                    visibleCount++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+            
+            // Show/hide no results message
+            if (visibleCount === 0) {
+                noResults.style.display = 'block';
+                booksContainer.style.display = 'none';
+            } else {
+                noResults.style.display = 'none';
+                booksContainer.style.display = '';
+            }
+            
+            updateBookCount(visibleCount);
+        }
+        
+        // Sort books
+        function sortBooks() {
+            const items = Array.from(bookItems);
+            
+            items.sort((a, b) => {
+                let valueA, valueB;
+                
+                if (currentSortBy === 'title' || currentSortBy === 'title-desc') {
+                    valueA = a.querySelector('.book-title').textContent.toLowerCase();
+                    valueB = b.querySelector('.book-title').textContent.toLowerCase();
+                } else if (currentSortBy === 'author' || currentSortBy === 'author-desc') {
+                    valueA = a.querySelector('.book-author').textContent.toLowerCase();
+                    valueB = b.querySelector('.book-author').textContent.toLowerCase();
+                } else if (currentSortBy === 'available') {
+                    valueA = a.querySelector('.book-availability').textContent.includes('Available') ? 1 : 0;
+                    valueB = b.querySelector('.book-availability').textContent.includes('Available') ? 1 : 0;
+                    return valueB - valueA; // Sort by availability (available first)
+                }
+                
+                if (currentSortBy === 'title-desc' || currentSortBy === 'author-desc') {
+                    return valueB.localeCompare(valueA);
+                }
+                
+                return valueA.localeCompare(valueB);
+            });
+            
+            // Reorder DOM
+            items.forEach(item => {
+                booksContainer.appendChild(item);
+            });
+        }
+        
+        // Update book count display
+        function updateBookCount(count) {
+            const displayCount = count !== undefined ? count : document.querySelectorAll('.book-item:not([style*="display: none"])').length;
+            bookCount.textContent = `${displayCount} book${displayCount !== 1 ? 's' : ''}`;
+        }
+    });
+</script>
 {% endblock %}

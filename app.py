@@ -12,7 +12,11 @@ app.secret_key = 'a_very_secret_and_static_key_for_development'  # Static secret
 
 @app.context_processor
 def inject_current_year():
-    return {'current_year': datetime.now().year}
+    now = datetime.now()
+    return {
+        'current_year': now.year,
+        'now': now
+    }
 
 # --- Database Configuration ---
 import os

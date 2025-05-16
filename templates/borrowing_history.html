@@ -1,58 +1,546 @@
 {% extends "base.html" %}
 
-{% block title %}My Borrowing History - Library Management{% endblock %}
+{% block title %}My Borrowing History - LibraryHub{% endblock %}
+
+{% block head_extra %}
+<style>
+    .history-header {
+        background: linear-gradient(120deg, var(--primary), var(--primary-dark));
+        border-radius: var(--radius-lg);
+        padding: 2rem;
+        color: white;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .history-header::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 40%;
+        height: 100%;
+        background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' width='100' height='100'%3E%3Cpath fill='%23ffffff' fill-opacity='0.1' d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z'%3E%3C/path%3E%3C/svg%3E");
+    }
+    
+    .history-title {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    
+    .history-subtitle {
+        opacity: 0.9;
+        font-size: 1.1rem;
+    }
+    
+    .history-card {
+        background-color: var(--white);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+    
+    .history-controls {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--gray-200);
+    }
+    
+    .stats-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .stat-box {
+        background-color: var(--white);
+        border-radius: var(--radius-md);
+        padding: 1.25rem;
+        text-align: center;
+        box-shadow: var(--shadow-sm);
+        border-top: 3px solid var(--primary);
+    }
+    
+    .stat-box.active {
+        border-top-color: var(--info);
+    }
+    
+    .stat-box.returned {
+        border-top-color: var(--success);
+    }
+    
+    .stat-box.overdue {
+        border-top-color: var(--danger);
+    }
+    
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--gray-800);
+        line-height: 1.2;
+    }
+    
+    .stat-label {
+        font-size: 0.875rem;
+        color: var(--gray-600);
+        margin-top: 0.5rem;
+    }
+    
+    .filter-bar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .controls-flex {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .borrowing-list {
+        padding: 1.5rem;
+    }
+    
+    .borrowing-item {
+        display: flex;
+        flex-direction: column;
+        border-radius: var(--radius-md);
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        box-shadow: var(--shadow-sm);
+        border-left: 4px solid var(--primary);
+        transition: var(--transition-fast);
+    }
+    
+    .borrowing-item:hover {
+        transform: translateX(5px);
+        box-shadow: var(--shadow-md);
+    }
+    
+    .borrowing-item.active {
+        border-left-color: var(--info);
+    }
+    
+    .borrowing-item.overdue {
+        border-left-color: var(--danger);
+    }
+    
+    .borrowing-item.returned {
+        border-left-color: var(--success);
+    }
+    
+    .borrowing-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 0.75rem;
+    }
+    
+    .borrowing-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--gray-800);
+        margin-right: 1rem;
+    }
+    
+    .borrowing-status {
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 0.35rem 0.75rem;
+        border-radius: 2rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+    }
+    
+    .borrowing-status.active {
+        background-color: rgba(59, 130, 246, 0.15);
+        color: var(--info);
+    }
+    
+    .borrowing-status.overdue {
+        background-color: rgba(239, 68, 68, 0.15);
+        color: var(--danger);
+    }
+    
+    .borrowing-status.returned {
+        background-color: rgba(16, 185, 129, 0.15);
+        color: var(--success);
+    }
+    
+    .borrowing-details {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+        margin-bottom: 1.25rem;
+        color: var(--gray-600);
+        font-size: 0.925rem;
+    }
+    
+    .borrowing-detail {
+        display: flex;
+        align-items: center;
+    }
+    
+    .borrowing-detail i {
+        margin-right: 0.5rem;
+        color: var(--gray-500);
+    }
+    
+    .borrowing-detail.overdue {
+        color: var(--danger);
+        font-weight: 500;
+    }
+    
+    .borrowing-actions {
+        display: flex;
+        gap: 0.75rem;
+    }
+    
+    .borrowing-progress {
+        margin-top: 1.25rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .progress-label {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+    
+    .progress-bar-container {
+        height: 8px;
+        background-color: var(--gray-200);
+        border-radius: 4px;
+        overflow: hidden;
+    }
+    
+    .progress-bar {
+        height: 100%;
+        border-radius: 4px;
+    }
+    
+    .progress-bar.active {
+        background-color: var(--info);
+    }
+    
+    .progress-bar.overdue {
+        background-color: var(--danger);
+    }
+    
+    .progress-bar.returned {
+        background-color: var(--success);
+    }
+    
+    .no-results {
+        padding: 3rem 2rem;
+        text-align: center;
+        display: none;
+    }
+    
+    .no-results i {
+        font-size: 3rem;
+        color: var(--gray-300);
+        margin-bottom: 1rem;
+    }
+    
+    @media (max-width: 768px) {
+        .history-header {
+            padding: 1.5rem;
+        }
+        
+        .history-title {
+            font-size: 1.75rem;
+        }
+        
+        .filter-bar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        .borrowing-header {
+            flex-direction: column;
+        }
+        
+        .borrowing-status {
+            align-self: flex-start;
+            margin-top: 0.5rem;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <h2>My Borrowing History</h2>
+<div class="container-fluid px-4 py-4">
+    <!-- Header Section -->
+    <div class="history-header">
+        <h1 class="history-title">My Borrowing History</h1>
+        <p class="history-subtitle">Track all your past and current book borrowings</p>
+    </div>
 
     {% if error %}
         <div class="alert alert-danger">{{ error }}</div>
     {% endif %}
 
     {% if borrowings %}
-    <div class="table-responsive mt-3">
-        <table class="table table-striped table-hover">
-            <thead class="table-primary">
-                <tr>
-                    <th>Book Title</th>
-                    <th>Borrowed On</th>
-                    <th>Due Date</th>
-                    <th>Returned On</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
+        <!-- Statistics Cards -->
+        <div class="stats-container">
+            {% set total_count = borrowings|length %}
+            {% set active_count = borrowings|selectattr('return_date', 'none')|selectattr('due_date', '>=', now)|list|length %}
+            {% set overdue_count = borrowings|selectattr('return_date', 'none')|selectattr('due_date', '<', now)|list|length %}
+            {% set returned_count = borrowings|selectattr('return_date', 'defined')|list|length %}
+            
+            <div class="stat-box">
+                <div class="stat-value">{{ total_count }}</div>
+                <div class="stat-label">Total Books</div>
+            </div>
+            
+            <div class="stat-box active">
+                <div class="stat-value">{{ active_count }}</div>
+                <div class="stat-label">Active Borrowings</div>
+            </div>
+            
+            <div class="stat-box returned">
+                <div class="stat-value">{{ returned_count }}</div>
+                <div class="stat-label">Returned</div>
+            </div>
+            
+            <div class="stat-box overdue">
+                <div class="stat-value">{{ overdue_count }}</div>
+                <div class="stat-label">Overdue</div>
+            </div>
+        </div>
+        
+        <!-- Main History Card -->
+        <div class="history-card">
+            <!-- Controls Section -->
+            <div class="history-controls">
+                <div class="controls-flex">
+                    <!-- Search Bar -->
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="historySearch" placeholder="Search borrowing history..." class="form-control">
+                    </div>
+                    
+                    <!-- Browse Books Button -->
+                    <a href="{{ url_for('available_books') }}" class="btn btn-primary">
+                        <i class="fas fa-book me-2"></i>Browse More Books
+                    </a>
+                </div>
+                
+                <!-- Filter Buttons -->
+                <div class="filter-bar mt-3">
+                    <div class="filter-container">
+                        <button class="filter-btn active" data-filter="all">All Books</button>
+                        <button class="filter-btn" data-filter="active">Active Borrowings</button>
+                        <button class="filter-btn" data-filter="returned">Returned</button>
+                        <button class="filter-btn" data-filter="overdue">Overdue</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Borrowings List -->
+            <div class="borrowing-list">
                 {% for borrowing in borrowings %}
-                <tr>
-                    <td>{{ borrowing.title }}</td>
-                    <td>{{ borrowing.borrow_date.strftime('%Y-%m-%d %H:%M') if borrowing.borrow_date else 'N/A' }}</td>
-                    <td>{{ borrowing.due_date.strftime('%Y-%m-%d') if borrowing.due_date else 'N/A' }}</td>
-                    <td>
-                        {% if borrowing.return_date %}
-                            {{ borrowing.return_date.strftime('%Y-%m-%d %H:%M') }}
+                    {% set is_overdue = not borrowing.return_date and borrowing.due_date < now %}
+                    {% set is_active = not borrowing.return_date and not is_overdue %}
+                    {% set is_returned = borrowing.return_date is not none %}
+                    {% set status = 'overdue' if is_overdue else ('active' if is_active else 'returned') %}
+                    
+                    {% if is_active %}
+                        {% set progress = ((now - borrowing.borrow_date).total_seconds() / (borrowing.due_date - borrowing.borrow_date).total_seconds() * 100)|round %}
+                    {% elif is_overdue %}
+                        {% set progress = 100 %}
+                    {% else %}
+                        {% set progress = 100 %}
+                    {% endif %}
+                    
+                    <div class="borrowing-item {{ status }}" 
+                         data-status="{{ status }}"
+                         data-title="{{ borrowing.title }}">
+                        <div class="borrowing-header">
+                            <div class="borrowing-title">{{ borrowing.title }}</div>
+                            <div class="borrowing-status {{ status }}">
+                                {% if is_overdue %}
+                                    Overdue
+                                {% elif is_active %}
+                                    Active
+                                {% else %}
+                                    Returned
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="borrowing-details">
+                            <div class="borrowing-detail">
+                                <i class="fas fa-calendar-plus"></i>
+                                <span>Borrowed: {{ borrowing.borrow_date.strftime('%b %d, %Y') }}</span>
+                            </div>
+                            
+                            <div class="borrowing-detail {% if is_overdue %}overdue{% endif %}">
+                                <i class="fas fa-calendar-day"></i>
+                                <span>Due: {{ borrowing.due_date.strftime('%b %d, %Y') }}</span>
+                                {% if is_overdue %}
+                                    <span class="ms-2">({{ (now - borrowing.due_date).days }} days overdue)</span>
+                                {% endif %}
+                            </div>
+                            
+                            {% if is_returned %}
+                            <div class="borrowing-detail">
+                                <i class="fas fa-calendar-check"></i>
+                                <span>Returned: {{ borrowing.return_date.strftime('%b %d, %Y') }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        {% if is_active or is_overdue %}
+                            <div class="borrowing-progress">
+                                <div class="progress-label">
+                                    <span>Borrowed</span>
+                                    <span>Due Date</span>
+                                </div>
+                                <div class="progress-bar-container">
+                                    <div class="progress-bar {{ status }}" style="width: {{ progress }}%"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="borrowing-actions">
+                                <form action="{{ url_for('return_book', borrowing_id=borrowing.borrowing_id) }}" method="POST">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-undo me-1"></i> Return Book
+                                    </button>
+                                </form>
+                            </div>
                         {% else %}
-                            <span class="badge bg-warning text-dark">Not Returned</span>
+                            <div class="borrowing-actions">
+                                <span class="text-muted">This book has been returned</span>
+                            </div>
                         {% endif %}
-                    </td>
-                    <td>
-                        {% if not borrowing.return_date %}
-                        <form action="{{ url_for('return_book', borrowing_id=borrowing.borrowing_id) }}" method="POST" class="d-inline">
-                            <button type="submit" class="btn btn-info btn-sm">Return Book</button>
-                        </form>
-                        {% else %}
-                            <span class="badge bg-success">Returned</span>
-                        {% endif %}
-                    </td>
-                </tr>
+                    </div>
                 {% endfor %}
-            </tbody>
-        </table>
-    </div>
+                
+                <!-- No Results Message -->
+                <div id="noResults" class="no-results">
+                    <i class="fas fa-search"></i>
+                    <h4>No matching books found</h4>
+                    <p>Try a different search term or filter</p>
+                    <button id="resetFilters" class="btn btn-outline-primary">Reset Filters</button>
+                </div>
+            </div>
+        </div>
     {% else %}
-    <div class="alert alert-info mt-3" role="alert">
-        You have no borrowing history. <a href="{{ url_for('available_books') }}">Browse books to borrow.</a>
-    </div>
+        <div class="empty-state">
+            <i class="fas fa-history"></i>
+            <h4>No borrowing history yet</h4>
+            <p>You haven't borrowed any books from our library so far.</p>
+            <a href="{{ url_for('available_books') }}" class="btn btn-primary">Browse Books</a>
+        </div>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Filter functionality
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const borrowingItems = document.querySelectorAll('.borrowing-item');
+        const noResultsDiv = document.getElementById('noResults');
+        const resetFilters = document.getElementById('resetFilters');
+        
+        // Function to update visibility of "no results" message
+        function updateNoResultsVisibility() {
+            // Count visible items
+            const visibleItems = document.querySelectorAll('.borrowing-item:not([style*="display: none"])');
+            if (visibleItems.length === 0 && borrowingItems.length > 0) {
+                noResultsDiv.style.display = 'block';
+            } else {
+                noResultsDiv.style.display = 'none';
+            }
+        }
+        
+        // Initial check
+        updateNoResultsVisibility();
+        
+        // Filter button click handler
+        filterButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // Remove active class from all buttons
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                // Add active class to clicked button
+                this.classList.add('active');
+                
+                const filter = this.getAttribute('data-filter');
+                
+                // Show/hide rows based on filter
+                borrowingItems.forEach(item => {
+                    if (filter === 'all' || item.getAttribute('data-status') === filter) {
+                        item.style.display = '';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+                
+                // Update "no results" message visibility
+                updateNoResultsVisibility();
+            });
+        });
+        
+        // Search functionality
+        const searchInput = document.getElementById('historySearch');
+        
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            
+            borrowingItems.forEach(item => {
+                const title = item.getAttribute('data-title').toLowerCase();
+                
+                if (title.includes(searchTerm)) {
+                    item.style.display = '';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+            
+            // Reset filter buttons if searching
+            if (searchTerm) {
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                filterButtons[0].classList.add('active'); // Set "All" as active
+            }
+            
+            // Update "no results" message visibility
+            updateNoResultsVisibility();
+        });
+        
+        // Reset filters button
+        if (resetFilters) {
+            resetFilters.addEventListener('click', function() {
+                // Clear search
+                searchInput.value = '';
+                
+                // Show all items
+                borrowingItems.forEach(item => {
+                    item.style.display = '';
+                });
+                
+                // Reset filter buttons
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                filterButtons[0].classList.add('active');
+                
+                // Hide no results message
+                noResultsDiv.style.display = 'none';
+            });
+        }
+    });
+</script>
 {% endblock %}
