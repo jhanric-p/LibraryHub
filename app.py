@@ -15,12 +15,27 @@ def inject_current_year():
     return {'current_year': datetime.now().year}
 
 # --- Database Configuration ---
+import os
+
+# Default to local database configuration
 DB_CONFIG = {
-    'host': 'db',
-    'user': 'library_user',
-    'password': 'library_password',
-    'database': 'librarydb'
+    'host': 'localhost',
+    'user': 'root',
+    'password': '12345678',
+    'database': 'libraryhub'
 }
+
+# Override with Codespace configuration if USE_CODESPACE_DB is set
+if os.environ.get('USE_CODESPACE_DB') == 'true':
+    DB_CONFIG = {
+        'host': 'db',
+        'user': 'library_user',
+        'password': 'library_password',
+        'database': 'librarydb'
+    }
+    print("Using Codespace database configuration")
+else:
+    print("Using local database configuration")
 
 def get_db_connection():
     """Establishes a connection to the MySQL database."""
@@ -573,13 +588,20 @@ def admin_delete_user(user_id):
 
 # --- Main Execution ---
 if __name__ == '__main__':
-    try:
-        # First try to use the codespace-specific initialization
-        from codespace_db_init import init_codespace_db
-        print("Using codespace database initialization...")
-        init_codespace_db()
-    except ImportError:
-        # Fall back to the original initialization if not in codespace
+    # Determine whether to use Codespace or local initialization
+    use_codespace = os.environ.get('USE_CODESPACE_DB') == 'true'
+    
+    if use_codespace:
+        try:
+            from codespace_db_init import init_codespace_db
+            print("Using Codespace database initialization...")
+            init_codespace_db()
+        except (ImportError, Exception) as e:
+            print(f"Warning: Codespace database initialization failed: {e}")
+            print("Falling back to standard initialization...")
+            use_codespace = False
+    
+    if not use_codespace:
         try:
             from db_initialization import init_db
             print("Using standard database initialization...")
@@ -589,4 +611,6 @@ if __name__ == '__main__':
             print(f"Warning: Database initialization failed: {e}")
             print("You may need to initialize the database manually.")
     
-    app.run(debug=True, host="0.0.0.0")
+    # Use 0.0.0.0 for Codespaces, localhost for local development
+    host = "0.0.0.0" if use_codespace else "localhost"
+    app.run(debug=True, host=host)
