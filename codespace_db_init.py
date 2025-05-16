@@ -9,6 +9,7 @@ import mysql.connector
 import time
 import sys
 import bcrypt
+import os
 
 # Container-specific database configuration
 CODESPACE_DB_CONFIG = {
@@ -20,7 +21,8 @@ CODESPACE_DB_CONFIG = {
 
 def wait_for_db():
     """Wait for the database to become available."""
-    max_attempts = 10
+    print("Checking database connectivity...")
+    max_attempts = 15  # Increased attempts
     attempt = 0
     while attempt < max_attempts:
         try:
@@ -28,24 +30,49 @@ def wait_for_db():
             temp_config = CODESPACE_DB_CONFIG.copy()
             db_name = temp_config.pop('database')
             
+            print(f"Attempt {attempt+1}/{max_attempts}: Connecting to MySQL at {temp_config['host']}...")
             conn = mysql.connector.connect(**temp_config)
             conn.close()
-            print("Database server is available!")
+            print("✅ Database server is available!")
             return True
         except mysql.connector.Error as err:
             attempt += 1
             if attempt < max_attempts:
-                print(f"Waiting for database to be ready... ({attempt}/{max_attempts})")
+                print(f"⏳ Waiting for database to be ready... ({attempt}/{max_attempts})")
+                print(f"   Error: {err}")
+                if "Unknown MySQL server host" in str(err):
+                    print("   It looks like the database container might not be running or reachable.")
+                    print("   Make sure the Docker containers are running correctly.")
+                    # Try to connect to localhost just to see if MySQL is available at all
+                    try:
+                        alt_config = temp_config.copy()
+                        alt_config['host'] = 'localhost'
+                        print("   Trying localhost connection as fallback...")
+                        local_conn = mysql.connector.connect(**alt_config)
+                        local_conn.close()
+                        print("   ✅ MySQL is available on localhost but not on 'db' hostname.")
+                        print("   This suggests the Docker container networking might not be set up correctly.")
+                    except:
+                        pass
                 time.sleep(3)  # Wait 3 seconds before retrying
             else:
-                print(f"Could not connect to database after {max_attempts} attempts: {err}")
+                print(f"❌ Could not connect to database after {max_attempts} attempts: {err}")
+                print("\nPossible issues and solutions:")
+                print("1. The MySQL container might not be running.")
+                print("   Run 'docker ps' to check if the 'db' container is running.")
+                print("2. There might be a network configuration issue.")
+                print("   Make sure your docker-compose.yml has the correct service names.")
+                print("3. The MySQL service might need more time to initialize.")
+                print("   Try running this script again after a minute.")
                 return False
 
 def init_codespace_db():
     """Initialize the database for codespaces environment."""
+    print("Starting Codespace database initialization...")
+    
     if not wait_for_db():
         print("Failed to connect to database. Exiting.")
-        sys.exit(1)
+        return False
         
     conn = None
     try:
@@ -53,18 +80,21 @@ def init_codespace_db():
         temp_config = CODESPACE_DB_CONFIG.copy()
         db_name = temp_config.pop('database')
         
+        print(f"Creating database '{db_name}' if it doesn't exist...")
         conn_no_db = mysql.connector.connect(**temp_config)
         cursor_no_db = conn_no_db.cursor()
         cursor_no_db.execute(f"CREATE DATABASE IF NOT EXISTS {db_name}")
         cursor_no_db.close()
         conn_no_db.close()
-        print(f"Database '{db_name}' created or already exists.")
+        print(f"✅ Database '{db_name}' created or already exists.")
         
         # Connect to the database
+        print(f"Connecting to database '{db_name}'...")
         conn = mysql.connector.connect(**CODESPACE_DB_CONFIG)
         cursor = conn.cursor()
         
         # Create tables
+        print("Creating database tables...")
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS users (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -102,22 +132,28 @@ def init_codespace_db():
         """)
         
         conn.commit()
-        print("Database tables created successfully!")
+        print("✅ Database tables created successfully!")
         
         # Create default admin user if it doesn't exist
+        print("Checking for admin user...")
         cursor.execute("SELECT id FROM users WHERE username = 'admin' AND role = 'admin'")
         if not cursor.fetchone():
+            print("Creating default admin user...")
             admin_pass = 'admin123'
             hashed_admin_pass = bcrypt.hashpw(admin_pass.encode('utf-8'), bcrypt.gensalt())
             cursor.execute("INSERT INTO users (username, password, role) VALUES (%s, %s, %s)",
                           ('admin', hashed_admin_pass.decode('utf-8'), 'admin'))
             conn.commit()
-            print(f"Default admin user created: username='admin', password='{admin_pass}'")
-            print("IMPORTANT: Please change this password after first login!")
+            print(f"✅ Default admin user created: username='admin', password='{admin_pass}'")
+            print("   IMPORTANT: Please change this password after first login!")
+        else:
+            print("✅ Admin user already exists.")
         
         # Add sample books if none exist
+        print("Checking for sample books...")
         cursor.execute("SELECT COUNT(*) FROM books")
         if cursor.fetchone()[0] == 0:
+            print("Adding sample books...")
             sample_books = [
                 ('The Great Gatsby', 'F. Scott Fitzgerald', '9780743273565', 5, 5, 
                  'A novel about the American Dream and its corruption'),
@@ -134,21 +170,43 @@ def init_codespace_db():
                 """, book)
             
             conn.commit()
-            print("Sample books added to the database.")
+            print("✅ Sample books added to the database.")
+        else:
+            print("✅ Sample books already exist.")
         
     except mysql.connector.Error as err:
-        print(f"Error during database initialization: {err}")
-        sys.exit(1)
+        print(f"❌ Error during database initialization: {err}")
+        return False
     except Exception as e:
-        print(f"Unexpected error: {e}")
-        sys.exit(1)
+        print(f"❌ Unexpected error: {e}")
+        return False
     finally:
         if conn and conn.is_connected():
             cursor.close()
             conn.close()
             print("Database connection closed.")
+    
+    return True
 
 if __name__ == "__main__":
-    print("Starting codespace database initialization...")
-    init_codespace_db()
-    print("Database initialization complete!") 
+    print("==============================================")
+    print("📊 CODESPACE DATABASE INITIALIZATION")
+    print("    Host: db (MySQL container)")
+    print("    User: library_user")
+    print("    Database: librarydb")
+    print("==============================================")
+    
+    if init_codespace_db():
+        print("\n✅ Codespace database initialization completed successfully!")
+    else:
+        print("\n❌ Codespace database initialization failed.")
+        print("\nTROUBLESHOOTING SUGGESTIONS:")
+        print("1. Check if the MySQL container is running:")
+        print("   docker ps | grep db")
+        print("2. Check Docker container logs:")
+        print("   docker logs $(docker ps -q --filter name=db)")
+        print("3. Verify docker-compose.yml has the correct service setup")
+        print("4. Try rebuilding the containers:")
+        print("   - Click the Dev Container button in the bottom-left corner")
+        print("   - Select 'Rebuild Container'")
+        sys.exit(1) 
